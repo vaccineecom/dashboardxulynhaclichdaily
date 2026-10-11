@@ -1,6 +1,17 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
+
+  <!-- ===================================================================
+       🔧 CHỖ DUY NHẤT CẦN SỬA: dán link Web App URL (/exec) của Apps Script
+       Portal Nhắc lịch chưa thanh toán vào giữa 2 dấu nháy bên dưới.
+       (Link GitHub Pages KHÔNG đổi — mỗi lần deploy chỉ sửa dòng này.)
+       =================================================================== -->
+  <script>
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx4koamyqT7hARs5HOCvHtz8ZBbVSWX47Bybsx_0VDSVufZBjYUcxJle8TCILBjlP5e/exec";
+  </script>
+  <!-- =================================================================== -->
+
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Portal Nhắc lịch chưa thanh toán — Long Châu</title>
@@ -39,14 +50,6 @@
   <iframe id="frame" title="Portal Nhắc lịch chưa thanh toán" allowfullscreen></iframe>
 
   <script>
-    /* =====================================================================
-       CHỈ SỬA DUY NHẤT DÒNG DƯỚI ĐÂY mỗi khi deploy Apps Script link mới.
-       Dán link "Web app URL" (kết thúc bằng /exec) vào giữa 2 dấu nháy.
-       Link GitHub Pages của bạn KHÔNG đổi.
-       ===================================================================== */
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby_MdSU6Dweo_rWYnQlAU2VqSO6spaCoQCB5qVDn5l2C1aSK9-iojIStWnvpioz0YkG/exec";
-    /* ===================================================================== */
-
     (function () {
       var f = document.getElementById('frame');
       var loader = document.getElementById('loader');
@@ -56,8 +59,19 @@
         return;
       }
       f.src = APPS_SCRIPT_URL;
-      f.addEventListener('load', function () { loader.classList.add('hide'); });
-      setTimeout(function () { loader.classList.add('hide'); }, 6000);
+
+      // Chỉ tắt màn hình ảnh Portal KHI dashboard bên trong báo đã render xong số liệu.
+      // Dashboard gửi postMessage('dashboard-ready') khi ẩn overlay "Đang tải số liệu".
+      var done = false;
+      function hideLoader() { if (done) return; done = true; loader.classList.add('hide'); }
+
+      window.addEventListener('message', function (ev) {
+        if (ev.data === 'dashboard-ready') hideLoader();
+      });
+
+      // Mạng lưới an toàn: nếu sau 45 giây vẫn chưa nhận tín hiệu (mạng chậm bất thường)
+      // thì tắt màn loading để không kẹt vĩnh viễn.
+      setTimeout(hideLoader, 45000);
     })();
   </script>
 
